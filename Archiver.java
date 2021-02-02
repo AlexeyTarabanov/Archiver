@@ -17,7 +17,12 @@ import java.nio.file.Paths;
    - вызвал метод createZip
  02. В классе ZipFileManager:
    - Реализовал метод createZip(Path source), в котором будем архивировать файл, заданный переменной source
- 03.
+ 03. Объявил enum Operation, в него добавил команды:
+     CREATE (создать архив), ADD (добавить файл в архив), REMOVE (удалить файл из архива), EXTRACT (извлечь содержимое архива),
+     CONTENT (росмотреть содержимое архива), EXIT (выйти из программы)
+   - Создал класс ConsoleHelper, в нем реализовал публичные методы:
+     writeMessage(String message), String readString() и int readInt()
+ 04.
  */
 
 public class Archiver {
