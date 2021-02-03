@@ -1,5 +1,7 @@
 package com.javarush.task.task31.task3110;
 
+import com.javarush.task.task31.task3110.command.ExitCommand;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
@@ -22,7 +24,10 @@ import java.nio.file.Paths;
      CONTENT (росмотреть содержимое архива), EXIT (выйти из программы)
    - Создал класс ConsoleHelper, в нем реализовал публичные методы:
      writeMessage(String message), String readString() и int readInt()
- 04.
+ 04. Создал пакет command, в нем:
+   - объявил интерфейс Command с методом execute()
+   - объявил класс ExitCommand, реализующий интерфейс Command реализовал в нем метод execute()
+ 05.
  */
 
 public class Archiver {
@@ -38,6 +43,8 @@ public class Archiver {
         System.out.println("Введите полный путь к файлу, который необходимо архивировать");
         Path source = Paths.get(reader.readLine());
         manager.createZip(source);
+
+        new ExitCommand().execute();
 
     }
 }

@@ -5,21 +5,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class ConsoleHelper {
+    private static BufferedReader bis = new BufferedReader(new InputStreamReader(System.in));
 
-    private static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-    // выводит сообщение в консоль
     public static void writeMessage(String message) {
         System.out.println(message);
     }
 
-    // читает строку с консоли
     public static String readString() throws IOException {
-        return reader.readLine();
+        String text = bis.readLine();
+        return text;
     }
 
-    // читает число с консоли
     public static int readInt() throws IOException {
-        return Integer.parseInt(readString());
+        String text = readString();
+        return Integer.parseInt(text.trim());
     }
 }
