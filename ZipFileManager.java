@@ -53,6 +53,32 @@ public class ZipFileManager {
         }
     }
 
+    public List<FileProperties> getFilesList() throws Exception {
+        // Проверяем существует ли zip файл
+        if (!Files.isRegularFile(zipFile)) {
+            throw new WrongZipFileException();
+        }
+
+        List<FileProperties> files = new ArrayList<>();
+
+        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+
+            while (zipEntry != null) {
+                // Поля "размер" и "сжатый размер" не известны, пока элемент не будет прочитан
+                // Давайте вычитаем его в какой-то выходной поток
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                copyData(zipInputStream, baos);
+
+                FileProperties file = new FileProperties(zipEntry.getName(), zipEntry.getSize(), zipEntry.getCompressedSize(), zipEntry.getMethod());
+                files.add(file);
+                zipEntry = zipInputStream.getNextEntry();
+            }
+        }
+
+        return files;
+    }
+
     private void addNewZipEntry(ZipOutputStream zipOutputStream, Path filePath, Path fileName) throws Exception {
         Path fullPath = filePath.resolve(fileName);
         try (InputStream inputStream = Files.newInputStream(fullPath)) {
@@ -71,34 +97,6 @@ public class ZipFileManager {
         int len;
         while ((len = in.read(buffer)) > 0) {
             out.write(buffer, 0, len);
-        }
-    }
-
-    // будет возвращать список свойств файлов
-    public List<FileProperties> getFilesList() throws Exception {
-
-        // проверяем является ли содержимое zipFile обычным файлом, если нет, то кидаем исключение
-        if (!Files.isRegularFile(zipFile)) {
-            throw new WrongZipFileException();
-        }
-
-        // сюда будем складывать свойства файлов
-        List<FileProperties> properties = new ArrayList<>();
-
-        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile));
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ZipEntry entry;
-
-            while ((entry = zipInputStream.getNextEntry()) != null) {
-                // для каждого эл-та ZipEntry вычитавыем его содержимое, иначе у нас не будет информации о его размере
-                copyData(zipInputStream, baos);
-                // создаем объект класса FileProperties, используя полученные данные о файле
-                FileProperties fileProperties =
-                        new FileProperties(entry.getName(), entry.getSize(), entry.getCompressedSize(), entry.getMethod());
-                properties.add(fileProperties);
-            }
-
-            return properties;
         }
     }
 }
