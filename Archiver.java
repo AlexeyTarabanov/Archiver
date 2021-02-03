@@ -61,7 +61,13 @@ import java.io.IOException;
    - отрефакторил его путем создания вспомогательных методов (addNewZipEntry() и copyData())
  11. В классе ZipCreateCommand, реализовал метод execute()
      В классе ZipCommand, реализовал метод getZipFileManager()
- 12.
+ 12. Создал класс FileProperties, который будет отвечать за свойства каждого файла в архиве
+     В классе FileProperties:
+   - создал поля String name, long size, long compressedSize (размер после сжатия), int compressionMethod (метод сжатия)
+   - добавил геттеры и конструктор
+   - создал и реализовал метод getCompressionRatio (будет считать степень сжатия)
+   - переопределил метод toString()
+ 13.
  */
 
 public class Archiver {
