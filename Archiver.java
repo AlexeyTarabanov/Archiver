@@ -25,7 +25,7 @@ import java.nio.file.Paths;
    - Создал класс ConsoleHelper, в нем реализовал публичные методы:
      writeMessage(String message), String readString() и int readInt()
  04. Создал пакет command, в нем:
-   - объявил интерфейс Command с методом execute()
+   - объявил интерфейс Command с методом execute() - отвечает за выполнение каких-то действий
    - объявил класс ExitCommand, реализующий интерфейс Command реализовал в нем метод execute()
  05. Разделим команды на два типа:
      1. те, которые работают непосредственно с архивом и
@@ -35,7 +35,12 @@ import java.nio.file.Paths;
      В пакете command:
    - создал абстрактный класс ZipCommand реализующий интерфейс Command
    - создал классы ZipCreateCommand, ZipContentCommand, ZipExtractCommand, ZipAddCommand и ZipRemoveCommand,
-     унаследовал их от ZipCommand.пш
+     унаследовал их от ZipCommand.
+ 06. Создал класс CommandExecutor (с помощью этого класса пользователь будет сообщать нам, что он хочет сделать).
+     В классе CommandExecutor:
+   - добавил поле Map<Operation, Command> ALL_KNOWN_COMMANDS_MAP, в статическом блоке проинициализировал значения.
+   - реализовал метод execute()
+ 07.
  */
 
 public class Archiver {
@@ -43,12 +48,14 @@ public class Archiver {
     public static void main(String[] args) throws Exception {
 
         System.out.println("Введите полный путь к архиву");
+//        /Users/user/Desktop/Java/forTest/archiver/someArchiver.zip
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         Path zipFile = Paths.get(reader.readLine());
         ZipFileManager manager = new ZipFileManager(zipFile);
 
         System.out.println("Введите полный путь к файлу, который необходимо архивировать");
+//        /Users/user/Desktop/Java/forTest/archiver/test.txt
         Path source = Paths.get(reader.readLine());
         manager.createZip(source);
 
