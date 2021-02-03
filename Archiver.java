@@ -59,7 +59,9 @@ import java.io.IOException;
  10. В классе ZipFileManager:
    - реализовал метод addNewZipEntry()
    - отрефакторил его путем создания вспомогательных методов (addNewZipEntry() и copyData())
- 11.
+ 11. В классе ZipCreateCommand, реализовал метод execute()
+     В классе ZipCommand, реализовал метод getZipFileManager()
+ 12.
  */
 
 public class Archiver {
