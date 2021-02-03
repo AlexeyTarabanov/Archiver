@@ -7,17 +7,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-// отвечает за получение списка всех файлов в какой-то папке.
 public class FileManager {
-
-    // корневой путь директории, файлы которой нас интересуют
     private Path rootPath;
-    // список относительных путей файлов внутри rootPath
     private List<Path> fileList;
 
     public FileManager(Path rootPath) throws IOException {
         this.rootPath = rootPath;
-        fileList = new ArrayList<>();
+        this.fileList = new ArrayList<>();
         collectFileList(rootPath);
     }
 
@@ -26,22 +22,21 @@ public class FileManager {
     }
 
     private void collectFileList(Path path) throws IOException {
-
-        // если переданный путь path является обычным файлом
+        // Добавляем только файлы
         if (Files.isRegularFile(path)) {
-            // получил его относительный путь относительно rootPath и добавил в список fileList
-            fileList.add(rootPath.relativize(path));
+            Path relativePath = rootPath.relativize(path);
+            fileList.add(relativePath);
         }
-        // если переданный путь path, является директорией
+
+        // Добавляем содержимое директории
         if (Files.isDirectory(path)) {
-            // для того, чтобы пройтись по всему содержимому директории
-            // получаем объект DirectoryStream
-            DirectoryStream<Path> stream = Files.newDirectoryStream(path);
-            for (Path path1 : stream) {
-                // рекурсия
-                collectFileList(path1);
+            // Рекурсивно проходимся по всему содержмому директории
+            // Чтобы не писать код по вызову close для DirectoryStream, обернем вызов newDirectoryStream в try-with-resources
+            try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path)) {
+                for (Path file : directoryStream) {
+                    collectFileList(file);
+                }
             }
-            stream.close();
         }
     }
 }

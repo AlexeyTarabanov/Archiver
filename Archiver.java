@@ -56,7 +56,10 @@ import java.io.IOException;
      обнаруженные внутри переданного пути path, вызывая сам себя для всех объектов, в обнаруженных директориях
    - создал конструктор ileManager(Path rootPath) throws IOException, проинициализировал переменные,
      вызвал метод collectFileList(rootPath)
- 10.
+ 10. В классе ZipFileManager:
+   - реализовал метод addNewZipEntry()
+   - отрефакторил его путем создания вспомогательных методов (addNewZipEntry() и copyData())
+ 11.
  */
 
 public class Archiver {
