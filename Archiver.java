@@ -27,7 +27,15 @@ import java.nio.file.Paths;
  04. Создал пакет command, в нем:
    - объявил интерфейс Command с методом execute()
    - объявил класс ExitCommand, реализующий интерфейс Command реализовал в нем метод execute()
- 05.
+ 05. Разделим команды на два типа:
+     1. те, которые работают непосредственно с архивом и
+     2. вспомогательные (например EXIT)
+     Все команды первого типа, будут иметь общий функционал.
+     Его вынесем в общий базовый класс ZipCommand.
+     В пакете command:
+   - создал абстрактный класс ZipCommand реализующий интерфейс Command
+   - создал классы ZipCreateCommand, ZipContentCommand, ZipExtractCommand, ZipAddCommand и ZipRemoveCommand,
+     унаследовал их от ZipCommand.пш
  */
 
 public class Archiver {
