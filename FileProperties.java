@@ -1,17 +1,18 @@
 package com.javarush.task.task31.task3110;
 
-// будет отвечать за свойства каждого файла в архиве
-// свойства - это набор, состоящий из:
-// имя файла, размер файла до и после сжатия, метод сжатия
 public class FileProperties {
-
     private String name;
-    // размер в байтах
     private long size;
-    // размер после сжатия в байтах
     private long compressedSize;
-    // метод сжатия
     private int compressionMethod;
+
+    public FileProperties(String name, long size, long compressedSize, int compressionMethod) {
+        this.name = name;
+        this.size = size;
+        this.compressedSize = compressedSize;
+        this.compressionMethod = compressionMethod;
+    }
+
 
     public String getName() {
         return name;
@@ -29,24 +30,26 @@ public class FileProperties {
         return compressionMethod;
     }
 
-    public FileProperties(String name, long size, long compressedSize, int compressionMethod) {
-        this.name = name;
-        this.size = size;
-        this.compressedSize = compressedSize;
-        this.compressionMethod = compressionMethod;
-    }
-
-    // будет считать степень сжатия
     public long getCompressionRatio() {
+        // Вычисляем степень сжатия
         return 100 - ((compressedSize * 100) / size);
     }
 
     @Override
     public String toString() {
+        // Строим красивую строку из свойств
+        StringBuilder builder = new StringBuilder();
+        builder.append(name);
         if (size > 0) {
-            return name + " " + size/1024 + " Kb (" + compressedSize/1024 + " Kb) сжатие: " + getCompressionRatio() + "%";
-            // нулевой размер может быть, например, у директории
-        } else
-            return name;
+            builder.append("\t");
+            builder.append(size / 1024);
+            builder.append(" Kb (");
+            builder.append(compressedSize / 1024);
+            builder.append(" Kb) сжатие: ");
+            builder.append(getCompressionRatio());
+            builder.append("%");
+        }
+
+        return builder.toString();
     }
 }

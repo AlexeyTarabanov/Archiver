@@ -1,13 +1,17 @@
 package com.javarush.task.task31.task3110;
 
 import com.javarush.task.task31.task3110.exception.PathIsNotFoundException;
+import com.javarush.task.task31.task3110.exception.WrongZipFileException;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class ZipFileManager {
@@ -67,6 +71,34 @@ public class ZipFileManager {
         int len;
         while ((len = in.read(buffer)) > 0) {
             out.write(buffer, 0, len);
+        }
+    }
+
+    // будет возвращать список свойств файлов
+    public List<FileProperties> getFilesList() throws Exception {
+
+        // проверяем является ли содержимое zipFile обычным файлом, если нет, то кидаем исключение
+        if (!Files.isRegularFile(zipFile)) {
+            throw new WrongZipFileException();
+        }
+
+        // сюда будем складывать свойства файлов
+        List<FileProperties> properties = new ArrayList<>();
+
+        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile));
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ZipEntry entry;
+
+            while ((entry = zipInputStream.getNextEntry()) != null) {
+                // для каждого эл-та ZipEntry вычитавыем его содержимое, иначе у нас не будет информации о его размере
+                copyData(zipInputStream, baos);
+                // создаем объект класса FileProperties, используя полученные данные о файле
+                FileProperties fileProperties =
+                        new FileProperties(entry.getName(), entry.getSize(), entry.getCompressedSize(), entry.getMethod());
+                properties.add(fileProperties);
+            }
+
+            return properties;
         }
     }
 }

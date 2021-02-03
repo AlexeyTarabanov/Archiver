@@ -67,7 +67,8 @@ import java.io.IOException;
    - добавил геттеры и конструктор
    - создал и реализовал метод getCompressionRatio (будет считать степень сжатия)
    - переопределил метод toString()
- 13.
+ 13. В классе ZipFileManager реализовал метод getFilesList(), он будет возвращать список свойств файлов
+ 14.
  */
 
 public class Archiver {
