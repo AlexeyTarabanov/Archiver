@@ -3,9 +3,7 @@ package com.javarush.task.task31.task3110;
 import com.javarush.task.task31.task3110.exception.PathIsNotFoundException;
 import com.javarush.task.task31.task3110.exception.WrongZipFileException;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -97,6 +95,55 @@ public class ZipFileManager {
         int len;
         while ((len = in.read(buffer)) > 0) {
             out.write(buffer, 0, len);
+        }
+    }
+
+    // будет распаковывать все файлы из архива в директорию outputFolder
+    public void extractAll(Path outputFolder) throws Exception {
+
+        // Правой кнопкой в проекте по папке, где был файл, выбрать Local History -> Show History.
+        // Там много чего можно откатить
+
+        // проверяем существует ли zip файл
+        if (!Files.isRegularFile(zipFile)) {
+            throw new WrongZipFileException();
+        }
+
+        // проверяем существует ли директория, в которую мы будем распаковывать архив
+        // если нет, то создаем ее
+        if (Files.notExists(outputFolder)) {
+            // Files.createDirectories автоматически создаёт все родительские несуществующие папки данной папки и её саму
+            // /Users/user/Desktop/JavaRushTask/JavaRushTasks/test777
+            Files.createDirectories(outputFolder);
+        }
+
+        // создаем поток для чтения из zip-файла
+        try (ZipInputStream inputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
+
+            // в объектн ZipEntry будет содержаться результат работы метода getNextEntry
+            ZipEntry zipEntry;
+            String name;
+
+            while ((zipEntry = inputStream.getNextEntry()) != null) {
+
+                // получаем название файла
+                name = zipEntry.getName();
+
+                // создаем полный путь для разархивации с помощью метода resolve()
+                // присоединяем к директории outputFolder (/Users/user/Desktop/Java/forTest/archiver) поле name (07 - ПММЛ.mp3)
+                // /Users/user/Desktop/Java/forTest/archiver/07 - ПММЛ.mp3
+                Path fileFullName = outputFolder.resolve(name);
+
+                // /Users/user/Desktop/JavaRushTask/JavaRushTasks/archiver/07 - ПММЛ.mp3
+                if (Files.notExists(fileFullName.getParent()))
+                    Files.createDirectories(fileFullName.getParent());
+
+                try (OutputStream stream = Files.newOutputStream(fileFullName)) {
+                    // читаем данные из inputStream и записываем в stream
+                    copyData(inputStream, stream);
+                    inputStream.closeEntry();
+                }
+            }
         }
     }
 }

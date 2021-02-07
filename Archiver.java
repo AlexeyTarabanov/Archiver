@@ -71,7 +71,11 @@ import java.io.IOException;
    - реализовал метод getFilesList(), он будет возвращать список свойств файлов
  14. В классе ZipContentCommand:
    - реализовал метод execute(), он отвечает за просмотр содержимого архива
- 15.
+ 15. В классе ZipFileManager:
+   - создал и реализовал метод extractAll(Path outputFolder), он будет распаковывать все файлы из архива в директорию outputFolder
+     В классе ZipExtractCommand:
+   - реализовал метод execute()
+ 16.
  */
 
 public class Archiver {
@@ -105,3 +109,6 @@ public class Archiver {
         return Operation.values()[ConsoleHelper.readInt()];
     }
 }
+
+// /Users/user/Desktop/Java/forTest/archiver/Zemfira.zip
+// /Users/user/Desktop/Java/forTest/archiver
