@@ -75,7 +75,11 @@ import java.io.IOException;
    - создал и реализовал метод extractAll(Path outputFolder), он будет распаковывать все файлы из архива в директорию outputFolder
      В классе ZipExtractCommand:
    - реализовал метод execute()
- 16.
+ 16. В классе ZipFileManager:
+   - создал и реализовал метод removeFiles(List<Path> pathList), который будет отвечать за удаление файла из архива
+     В классе ZipExtractCommand:
+   - реализовал метод execute()
+ 17.
  */
 
 public class Archiver {

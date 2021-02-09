@@ -3,10 +3,15 @@ package com.javarush.task.task31.task3110;
 import com.javarush.task.task31.task3110.exception.PathIsNotFoundException;
 import com.javarush.task.task31.task3110.exception.WrongZipFileException;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -47,6 +52,37 @@ public class ZipFileManager {
 
                 // Если переданный source не директория и не файл, бросаем исключение
                 throw new PathIsNotFoundException();
+            }
+        }
+    }
+
+    public void extractAll(Path outputFolder) throws Exception {
+        // Проверяем существует ли zip файл
+        if (!Files.isRegularFile(zipFile)) {
+            throw new WrongZipFileException();
+        }
+
+        try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
+            // Создаем директорию вывода, если она не существует
+            if (Files.notExists(outputFolder))
+                Files.createDirectories(outputFolder);
+
+            // Проходимся по содержимому zip потока (файла)
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
+
+            while (zipEntry != null) {
+                String fileName = zipEntry.getName();
+                Path fileFullName = outputFolder.resolve(fileName);
+
+                // Создаем необходимые директории
+                Path parent = fileFullName.getParent();
+                if (Files.notExists(parent))
+                    Files.createDirectories(parent);
+
+                try (OutputStream outputStream = Files.newOutputStream(fileFullName)) {
+                    copyData(zipInputStream, outputStream);
+                }
+                zipEntry = zipInputStream.getNextEntry();
             }
         }
     }
@@ -98,52 +134,54 @@ public class ZipFileManager {
         }
     }
 
-    // будет распаковывать все файлы из архива в директорию outputFolder
-    public void extractAll(Path outputFolder) throws Exception {
-
-        // Правой кнопкой в проекте по папке, где был файл, выбрать Local History -> Show History.
-        // Там много чего можно откатить
+    // чтобы что-то удалить из архива, нужно создать новый архив, переписать в него все, кроме удаляемых файлов,
+    // а потом заменить старый архив вновь созданным
+    public void removeFiles(List<Path> pathList) throws Exception {
+        // в pathList будет передаваться список относительных путей на файлы внутри архива
 
         // проверяем существует ли zip файл
         if (!Files.isRegularFile(zipFile)) {
             throw new WrongZipFileException();
         }
 
-        // проверяем существует ли директория, в которую мы будем распаковывать архив
-        // если нет, то создаем ее
-        if (Files.notExists(outputFolder)) {
-            // Files.createDirectories автоматически создаёт все родительские несуществующие папки данной папки и её саму
-            // /Users/user/Desktop/JavaRushTask/JavaRushTasks/test777
-            Files.createDirectories(outputFolder);
-        }
+        // создаем временный файл архива в директории по умолчанию
+        Path temp = Files.createTempFile(null, null);
 
-        // создаем поток для чтения из zip-файла
-        try (ZipInputStream inputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
 
-            // в объектн ZipEntry будет содержаться результат работы метода getNextEntry
-            ZipEntry zipEntry;
-            String name;
+        try (   ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(temp));
+                // проходимся по всем файлам оригинального архива
+                ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
 
-            while ((zipEntry = inputStream.getNextEntry()) != null) {
+            // проходимся по содержимому zip потока (файла)
+            ZipEntry zipEntry = zipInputStream.getNextEntry();
 
-                // получаем название файла
-                name = zipEntry.getName();
-
-                // создаем полный путь для разархивации с помощью метода resolve()
-                // присоединяем к директории outputFolder (/Users/user/Desktop/Java/forTest/archiver) поле name (07 - ПММЛ.mp3)
-                // /Users/user/Desktop/Java/forTest/archiver/07 - ПММЛ.mp3
-                Path fileFullName = outputFolder.resolve(name);
-
-                // /Users/user/Desktop/JavaRushTask/JavaRushTasks/archiver/07 - ПММЛ.mp3
-                if (Files.notExists(fileFullName.getParent()))
-                    Files.createDirectories(fileFullName.getParent());
-
-                try (OutputStream stream = Files.newOutputStream(fileFullName)) {
-                    // читаем данные из inputStream и записываем в stream
-                    copyData(inputStream, stream);
-                    inputStream.closeEntry();
+            while (zipEntry != null) {
+                // проверяю та ли это ентри, что нужно удалить:
+                if (pathList.contains(Paths.get(zipEntry.getName()))) {
+                    ConsoleHelper.writeMessage("Файл " + zipEntry.getName() + " удален");
+                } else {
+                    // переписываем в новый архиы (temp)
+                    zipOutputStream.putNextEntry(zipEntry);
+                    copyData(zipInputStream, zipOutputStream);
+                    zipInputStream.closeEntry();
+                    zipOutputStream.closeEntry();
                 }
+                zipEntry = zipInputStream.getNextEntry();
             }
         }
+        // заменяем оригинальный файл архива временным, в который мы записали нужные файлы.
+        // Files.move() - перемещает файлы из одного каталога в другой в Java.
+        // public static Path move(Path source,Path target,CopyOption... options) throws IOException
+        // где
+        // source — исходный путь файла, который будет перемещен;
+        // target — целевой путь файла для перемещения;
+        // параметры — такие параметры, как REPLACE_EXISTING, ATOMIC_MOVE.
+        Files.move(temp, zipFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public void removeFile(Path path) throws Exception {
+        // вызываем метод removeFiles, создавая список из одного элемента, с помощью singletonList
+        // singletonList - возвращает неизменяемый список, содержащий только указанный объект.
+        removeFiles(Collections.singletonList(path));
     }
 }
