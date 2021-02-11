@@ -79,7 +79,9 @@ import java.io.IOException;
    - создал и реализовал метод removeFiles(List<Path> pathList), который будет отвечать за удаление файла из архива
      В классе ZipExtractCommand:
    - реализовал метод execute()
- 17.
+ 17. В классе ZipFileManager:
+   - создал и реализовал метод addFiles(List<Path> absolutePathList), который будет отвечать за добавление файла в архив
+   - реализовал метод execute()
  */
 
 public class Archiver {
@@ -116,3 +118,4 @@ public class Archiver {
 
 // /Users/user/Desktop/Java/forTest/archiver/Zemfira.zip
 // /Users/user/Desktop/Java/forTest/archiver
+// /Users/user/Downloads/04 - Мачо.mp3
