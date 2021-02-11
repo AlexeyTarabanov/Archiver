@@ -82,6 +82,7 @@ import java.io.IOException;
  17. В классе ZipFileManager:
    - создал и реализовал метод addFiles(List<Path> absolutePathList), который будет отвечать за добавление файла в архив
    - реализовал метод execute()
+ 18. "Подправленный" код от учителя...)
  */
 
 public class Archiver {

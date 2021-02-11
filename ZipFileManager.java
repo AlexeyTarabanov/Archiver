@@ -128,6 +128,56 @@ public class ZipFileManager {
         Files.move(tempZipFile, zipFile, StandardCopyOption.REPLACE_EXISTING);
     }
 
+    public void addFile(Path absolutePath) throws Exception {
+        addFiles(Collections.singletonList(absolutePath));
+    }
+
+    public void addFiles(List<Path> absolutePathList) throws Exception {
+        // Проверяем существует ли zip файл
+        if (!Files.isRegularFile(zipFile)) {
+            throw new WrongZipFileException();
+        }
+
+        // Создаем временный файл
+        Path tempZipFile = Files.createTempFile(null, null);
+        List<Path> archiveFiles = new ArrayList<>();
+
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(tempZipFile))) {
+            try (ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
+
+                ZipEntry zipEntry = zipInputStream.getNextEntry();
+                while (zipEntry != null) {
+                    String fileName = zipEntry.getName();
+                    archiveFiles.add(Paths.get(fileName));
+
+                    zipOutputStream.putNextEntry(new ZipEntry(fileName));
+                    copyData(zipInputStream, zipOutputStream);
+
+                    zipInputStream.closeEntry();
+                    zipOutputStream.closeEntry();
+
+                    zipEntry = zipInputStream.getNextEntry();
+                }
+            }
+
+            // Архивируем новые файлы
+            for (Path file : absolutePathList) {
+                if (Files.isRegularFile(file)) {
+                    if (archiveFiles.contains(file.getFileName()))
+                        ConsoleHelper.writeMessage(String.format("Файл '%s' уже существует в архиве.", file.toString()));
+                    else {
+                        addNewZipEntry(zipOutputStream, file.getParent(), file.getFileName());
+                        ConsoleHelper.writeMessage(String.format("Файл '%s' добавлен в архиве.", file.toString()));
+                    }
+                } else
+                    throw new PathIsNotFoundException();
+            }
+        }
+
+        // Перемещаем временный файл на место оригинального
+        Files.move(tempZipFile, zipFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+
     public List<FileProperties> getFilesList() throws Exception {
         // Проверяем существует ли zip файл
         if (!Files.isRegularFile(zipFile)) {
@@ -173,71 +223,5 @@ public class ZipFileManager {
         while ((len = in.read(buffer)) > 0) {
             out.write(buffer, 0, len);
         }
-    }
-
-    // добавление файлов похоже на удаление, мы создаем временный файл архив,
-    // переписываем в него все содержимое старого архива и добавляем новые файлы.
-    // Потом заменяем старый файл архива новым
-    public void addFiles(List<Path> absolutePathList) throws Exception {
-        // absolutePathList - список абсолютных путей добавляемых файлов.
-
-        // проверяем существует ли zip файл
-        if (!Files.isRegularFile(zipFile)) {
-            throw new WrongZipFileException();
-        }
-
-        // создаем временный файл архива в директории по умолчанию
-        Path temp = Files.createTempFile(null, null);
-
-        // для записи ZIP-файла применяется класс ZipOutputStream.
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(temp));
-             ZipInputStream zipInputStream = new ZipInputStream(Files.newInputStream(zipFile))) {
-
-            // для каждой записи, которую требуется поместить в ZIP-файл, создается объект ZipEntry.
-            // желаемое имя для файла передается конструктору ZipEntry
-            ZipEntry zipEntry;
-
-            // создали список, где будут хранится все имена файлов
-            List<String> tempFileList = new ArrayList<>();
-
-            // проходимся по всем файлам оригинального архива
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                // получаем название файла
-                String fileName = zipEntry.getName();
-                // для начала процесса записи нового файла, вызывается метод putNextEntry
-                zipOutputStream.putNextEntry(new ZipEntry(fileName));
-                // переписываем каждый файл в новый архиы (temp)
-                copyData(zipInputStream, zipOutputStream);
-                // добавляем имя переписанного файла в локальный список
-                tempFileList.add(fileName);
-
-                zipInputStream.closeEntry();
-                zipOutputStream.closeEntry();
-
-            }
-
-            // проходимся по списку добавляемых файлов
-            for (Path pathAdd : absolutePathList) {
-
-                // проверяем, файл ли это, если нет, сразу кидаем исключение
-                if (!Files.isRegularFile(pathAdd))
-                    throw new PathIsNotFoundException();
-
-                // проверяем, есть ли уже файл с таким именем
-                if (tempFileList.contains(pathAdd.getFileName().toString())) {
-                    ConsoleHelper.writeMessage(pathAdd.getFileName().toString() + " уже есть в архиве.");
-                } else {
-                    addNewZipEntry(zipOutputStream, pathAdd.getParent(), pathAdd.getFileName());
-                    ConsoleHelper.writeMessage("Файл " + pathAdd.getFileName().toString() + " добавлен в архив.");
-                }
-            }
-        }
-
-        // заменяем оригинальный файл архива временным, в который мы записали нужные файлы.
-        Files.move(temp, zipFile, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    public void addFile(Path absolutePath) throws Exception {
-        addFiles(Collections.singletonList(absolutePath));
     }
 }
